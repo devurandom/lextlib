@@ -7,7 +7,7 @@
 
 #if LUA_VERSION_NUM < 502
 #	define LUA_OK 0
-#	define LUA_ERRGCMM 5
+#	define LUA_ERRGCMM (-1)
 #	define LUA_OPEQ 0
 #	define LUA_OPLT 1
 #	define LUA_OPLE 2
