@@ -75,11 +75,11 @@
 
 #define luaX_stkdbg(L) { \
 		printf("L%d -> %d items\n", __LINE__, lua_gettop(L)); \
-		printf(" [-1] %s\n", lua_typename(L, lua_type(L, -1))); \
-		printf(" [-2] %s\n", lua_typename(L, lua_type(L, -2))); \
-		printf(" [-3] %s\n", lua_typename(L, lua_type(L, -3))); \
-		printf(" [-4] %s\n", lua_typename(L, lua_type(L, -4))); \
-		printf(" [-5] %s\n", lua_typename(L, lua_type(L, -5))); \
+		printf(" [-1] %s = %s\n", lua_typename(L, lua_type(L, -1)), (lua_isstring(L, -1) ? lua_tostring(L, -1) : "?")); \
+		printf(" [-2] %s = %s\n", lua_typename(L, lua_type(L, -2)), (lua_isstring(L, -2) ? lua_tostring(L, -2) : "?")); \
+		printf(" [-3] %s = %s\n", lua_typename(L, lua_type(L, -3)), (lua_isstring(L, -3) ? lua_tostring(L, -3) : "?")); \
+		printf(" [-4] %s = %s\n", lua_typename(L, lua_type(L, -4)), (lua_isstring(L, -4) ? lua_tostring(L, -4) : "?")); \
+		printf(" [-5] %s = %s\n", lua_typename(L, lua_type(L, -5)), (lua_isstring(L, -5) ? lua_tostring(L, -5) : "?")); \
 	}
 
 #define luaX_passerr(L, func) { \
