@@ -504,7 +504,7 @@
 #    include <sys/param.h>
 #    include <w32api.h>
 #    define _WIN32_IE IE5
-// Required for alloca
+/* Required for alloca */
 #    include <malloc.h>
 
 #  elif defined(LUAX_CC_MSVC)
@@ -521,15 +521,15 @@
 #  include <windows.h>
 
 #  if defined(LUAX_CC_MSVC)
-//   notify people we are disabling these warning messages.
+/*   notify people we are disabling these warning messages. */
 #    pragma message (" *** Warnings 4018,4100,4127,4204,4244,4267,4389 have been squelched. ***")
-#    pragma warning (disable : 4018) // Shut up: '>' : signed/unsigned mismatch
-#    pragma warning (disable : 4100) // Shut up: unreferenced formal parameter (FIXME)
-#    pragma warning (disable : 4127) // Shut up: conditional expression is constant (eg. "while(0)")
-#    pragma warning (disable : 4204) // Shut up: non-constant aggregate initializer
-#    pragma warning (disable : 4244) // Shut up: conversion from 'float' to 'int', possible loss of data
-#    pragma warning (disable : 4267) // Shut up: conversion from 'size_t' to 'type', possible loss of data
-#    pragma warning (disable : 4389) // Shut up: '==' : signed/unsigned mismatch
+#    pragma warning (disable : 4018) /* Shut up: '>' : signed/unsigned mismatch */
+#    pragma warning (disable : 4100) /* Shut up: unreferenced formal parameter (FIXME) */
+#    pragma warning (disable : 4127) /* Shut up: conditional expression is constant (eg. "while(0)") */
+#    pragma warning (disable : 4204) /* Shut up: non-constant aggregate initializer */
+#    pragma warning (disable : 4244) /* Shut up: conversion from 'float' to 'int', possible loss of data */
+#    pragma warning (disable : 4267) /* Shut up: conversion from 'size_t' to 'type', possible loss of data */
+#    pragma warning (disable : 4389) /* Shut up: '==' : signed/unsigned mismatch */
 
 #    define strcasecmp _stricmp
 #    define strncasecmp _strnicmp
@@ -557,7 +557,8 @@
 #endif /* LUAX_OS_* */
 
 
-#if !defined(LUAX_C99) && !defined(va_copy)
+#if !defined(LUAX_C99)
+#	if !defined(va_copy)
 /**
  * Implements the interface of the C99 macro va_copy such that we can use it on
  * non-C99 systems as well.
@@ -566,8 +567,12 @@
  * frame of the variadic function. This is by far the most common setup, though
  * it might not always work.
  */
-# define va_copy(dest, src) (void)((dest) = (src))
-#endif // !LUAX_C99 && !va_copy
+#		define va_copy(dest, src) (void)((dest) = (src))
+#	endif /* !va_copy */
+#	if !defined(inline)
+#		define inline __inline
+#	endif /* !inline */
+#endif /* !LUAX_C99 */
 
 
 #endif /* WZGLOBAL_H */
