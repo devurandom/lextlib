@@ -60,7 +60,7 @@
 			(op) == LUA_OPLE ? ( \
 				lua_lessthan(L,(i1),(i2)) || lua_equal(L,(i1),(i2)) \
 			) : ( \
-				lua_error(L, "Call to lua_compare with unsupported operator %d", op) \
+				luaL_error(L, "Call to lua_compare with unsupported operator %d", op) \
 			) \
 		) \
 	) \
