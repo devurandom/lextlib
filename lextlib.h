@@ -1,6 +1,9 @@
 #ifndef LEXTLIB_H
 #define LEXTLIB_H
 
+
+#include <stdio.h>
+
 #include <lua.h>
 
 #include "lextlib_global.h"
@@ -74,12 +77,11 @@
 	(lua_isnoneornil((L), (narg)) ? (def) : func((L), (narg), (argname)))
 
 #define luaX_stkdbg(L) { \
-		printf("L%d -> %d items\n", __LINE__, lua_gettop(L)); \
-		printf(" [-1] %s = %s\n", lua_typename(L, lua_type(L, -1)), (lua_isstring(L, -1) ? lua_tostring(L, -1) : "?")); \
-		printf(" [-2] %s = %s\n", lua_typename(L, lua_type(L, -2)), (lua_isstring(L, -2) ? lua_tostring(L, -2) : "?")); \
-		printf(" [-3] %s = %s\n", lua_typename(L, lua_type(L, -3)), (lua_isstring(L, -3) ? lua_tostring(L, -3) : "?")); \
-		printf(" [-4] %s = %s\n", lua_typename(L, lua_type(L, -4)), (lua_isstring(L, -4) ? lua_tostring(L, -4) : "?")); \
-		printf(" [-5] %s = %s\n", lua_typename(L, lua_type(L, -5)), (lua_isstring(L, -5) ? lua_tostring(L, -5) : "?")); \
+		int i, top = lua_gettop(L); \
+		fprintf(stderr, "L%d -> %d items\n", __LINE__, top); \
+		for (i = top; i > 0; i--) { \
+			printf(" [%d] %s = %s\n", i, lua_typename(L, lua_type(L, i)), (lua_isstring(L, i) ? lua_tostring(L, i) : "?")); \
+		} \
 	}
 
 #define luaX_passerr(L, func) { \
