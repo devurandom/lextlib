@@ -11,6 +11,7 @@
 #if LUA_VERSION_NUM < 502
 /* Error codes for lua_load: */
 #	define LUA_OK 0
+/* WARNING: This error does not exist in Lua 5.1 */
 #	define LUA_ERRGCMM (-1)
 
 /* Comparison types for lua_compare: */
@@ -29,10 +30,12 @@
 #	define lua_tointegerx(L,i,b) (lua_isnumber(L,(i)) ? (*(b)=1, lua_tointeger(L,(i))) : (*(b)=0, 0))
 
 #	define luaL_newlib(L,l) (lua_newtable(L), luaL_register(L,NULL,l))
+/* WARNING: Does not work if you need common upvalues */
 #	define luaL_setfuncs(L,l,n) (assert(n==0), luaL_register(L,NULL,l))
 
 #	define luaL_setmetatable(L,t) (luaL_getmetatable(L,t), lua_setmetatable(L,-2))
 
+/* WARNING: Probably slower than Lua 5.2's implementation */
 #	define luaL_testudata(L,i,t) ( \
 	lua_getmetatable(L,(i)), \
 	!lua_isnil(L,-1) ? ( \
@@ -55,6 +58,7 @@
 	) \
 )
 
+/* WARNING: Probably quite a bit slower than Lua 5.2's implementation */
 #	define lua_compare(L,i1,i2,op) ( \
 	(op) == LUA_OPEQ ? ( \
 		lua_equal(L,(i1),(i2)) \
