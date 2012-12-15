@@ -23,15 +23,7 @@
 #	define lua_tointegerx(L,i,b) (lua_isnumber(L,(i)) ? (*(b)=1, lua_tointeger(L,(i))) : (*(b)=0, 0))
 #	define luaL_newlib(L,l) (lua_newtable(L), luaL_register(L,NULL,l))
 #	define luaL_setfuncs(L,l,n) (assert(n==0), luaL_register(L,NULL,l))
-#	define luaL_setmetatable(L,t) ( \
-	luaL_getmetatable(L,t), \
-	!lua_isnil(L,-1) ? 0 : ( \
-		lua_newtable(L), \
-		lua_pushvalue(L,-1), \
-		lua_setfield(L,LUA_REGISTRYINDEX,t), \
-		1 \
-	) \
-)
+#	define luaL_setmetatable(L,t) (luaL_getmetatable(L,t), lua_setmetatable(L,-2))
 #	define luaL_testudata(L,i,t) ( \
 	lua_getmetatable(L,(i)), \
 	!lua_isnil(L,-1) ? ( \
