@@ -41,7 +41,7 @@
 	!lua_isnil(L,-1) ? ( \
 		luaL_getmetatable(L,t), \
 		!lua_isnil(L,-1) ? ( \
-			lua_compare(L,-1,-2,LUA_OPEQ) ? ( \
+			lua_equal(L,-1,-2) ? ( \
 				lua_pop(L,2), \
 				lua_touserdata(L,(i)) \
 			) : ( \
