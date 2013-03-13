@@ -141,7 +141,11 @@ int luaX_argerror (lua_State *L, int narg, const char *argname, const char *extr
 		msg = lua_pushfstring(L, LUA_QS ": %s", argname, extramsg);
 	}
 	else {
+#if LUA_VERSION_NUM >= 502
 		msg = lua_pushstring(L, extramsg);
+#else
+		msg = lua_pushfstring(L, "%s", extramsg);
+#endif
 	}
 
 	return luaL_argerror(L, narg, msg);
