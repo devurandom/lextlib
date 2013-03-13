@@ -26,6 +26,9 @@
 #	define lua_getuservalue lua_getfenv
 #	define lua_setuservalue lua_setfenv
 
+/* WARNING: Probably slower than Lua 5.2's implementation */
+#	define lua_compare(L,i1,i2,op) luaX52_lua_compare(L,(i1),(i2),(op))
+
 #	define lua_tonumberx(L,i,b) (lua_isnumber(L,(i)) ? (*(b)=1, lua_tonumber(L,(i))) : (*(b)=0, 0))
 #	define lua_tointegerx(L,i,b) (lua_isnumber(L,(i)) ? (*(b)=1, lua_tointeger(L,(i))) : (*(b)=0, 0))
 
@@ -36,44 +39,42 @@
 #	define luaL_setmetatable(L,t) (luaL_getmetatable(L,t), lua_setmetatable(L,-2))
 
 /* WARNING: Probably slower than Lua 5.2's implementation */
-#	define luaL_testudata(L,i,t) ( \
-	lua_getmetatable(L,(i)), \
-	!lua_isnil(L,-1) ? ( \
-		luaL_getmetatable(L,t), \
-		!lua_isnil(L,-1) ? ( \
-			lua_equal(L,-1,-2) ? ( \
-				lua_pop(L,2), \
-				lua_touserdata(L,(i)) \
-			) : ( \
-				lua_pop(L,2), \
-				NULL \
-			) \
-		) : ( \
-			lua_pop(L,2), \
-			NULL \
-		) \
-	) : ( \
-		lua_pop(L,1), \
-		NULL \
-	) \
-)
+# define luaL_testudata(L,i,t) luaX52_luaL_testudata(L,(i),(t))
 
-/* WARNING: Probably quite a bit slower than Lua 5.2's implementation */
-#	define lua_compare(L,i1,i2,op) ( \
-	(op) == LUA_OPEQ ? ( \
-		lua_equal(L,(i1),(i2)) \
-	) : ( \
-		(op) == LUA_OPLT ? ( \
-			lua_lessthan(L,(i1),(i2)) \
-		) : ( \
-			(op) == LUA_OPLE ? ( \
-				lua_lessthan(L,(i1),(i2)) || lua_equal(L,(i1),(i2)) \
-			) : ( \
-				luaL_error(L, "Call to lua_compare with unsupported operator %d", op) \
-			) \
-		) \
-	) \
-)
+
+static inline int luaX52_lua_compare(lua_State *L, int index1, int index2, int op) {
+	switch (op) {
+	case LUA_OPEQ:
+		return lua_equal(L, index1, index2);
+	case LUA_OPLT:
+		return lua_lessthan(L, index1, index2);
+	case LUA_OPLE:
+		return lua_lessthan(L, index1, index2) || lua_equal(L, index1, index2);
+	default:
+		return luaL_error(L, "Call to lua_compare with unsupported operator %d", op);
+	}
+}
+
+static inline void *luaX52_luaL_testudata(lua_State *L, int arg, const char *tname) {
+	lua_getmetatable(L, arg);
+	if (!lua_isnil(L, -1)) {
+		luaL_getmetatable(L, tname);
+		if (!lua_isnil(L, -1)) {
+			if (lua_equal(L, -1, -2)) {
+				lua_pop(L, 2);
+				return lua_touserdata(L, arg);
+			}
+		}
+
+		lua_pop(L, 2);
+	}
+	else {
+		lua_pop(L, 1);
+	}
+	
+	return NULL;
+}
+
 #endif
 
 
