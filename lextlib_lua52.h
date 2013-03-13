@@ -33,6 +33,9 @@
 #	define lua_tointegerx(L,i,b) (lua_isnumber(L,(i)) ? (*(b)=1, lua_tointeger(L,(i))) : (*(b)=0, 0))
 
 #	define luaL_newlib(L,l) (lua_newtable(L), luaL_register(L,NULL,l))
+
+# define luaL_requiref(L,l,f,g) luaX52_luaL_requiref(L,(l),(f),(g))
+
 /* WARNING: Does not work if you need common upvalues */
 #	define luaL_setfuncs(L,l,n) (assert(n==0), luaL_register(L,NULL,l))
 
@@ -52,6 +55,30 @@ static inline int luaX52_lua_compare(lua_State *L, int index1, int index2, int o
 		return lua_lessthan(L, index1, index2) || lua_equal(L, index1, index2);
 	default:
 		return luaL_error(L, "Call to lua_compare with unsupported operator %d", op);
+	}
+}
+
+static inline void luaX52_luaL_requiref(lua_State *L, const char *modname, lua_CFunction openf, int glb) {
+	lua_getglobal(L, "package");
+	
+	int l_package_loaded = -1;
+	if (!lua_isnil(L, -1)) {
+		lua_getfield(L, -1, "loaded");
+		l_package_loaded = lua_gettop(L);
+	}
+	
+	lua_pushcfunction(L, openf);
+	lua_pushstring(L, modname);
+	lua_call(L, 1, 1);
+
+	if (l_package_loaded >= 0 && !lua_isnil(L, l_package_loaded)) {
+		lua_pushvalue(L, -1);
+		lua_setfield(L, l_package_loaded, modname);
+	}
+	
+	if (glb) {
+		lua_pushvalue(L, -1);
+		lua_setglobal(L, modname);
 	}
 }
 
