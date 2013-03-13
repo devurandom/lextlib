@@ -135,7 +135,14 @@ const char *luaX_typename(lua_State *L, int narg) {
 
 
 int luaX_argerror (lua_State *L, int narg, const char *argname, const char *extramsg) {
-	const char *msg = lua_pushfstring(L, LUA_QS ": %s", argname, extramsg);
+	const char *msg = NULL;
+
+	if (argname != NULL) {
+		msg = lua_pushfstring(L, LUA_QS ": %s", argname, extramsg);
+	}
+	else {
+		msg = lua_pushstring(L, extramsg);
+	}
 
 	return luaL_argerror(L, narg, msg);
 }
@@ -237,35 +244,46 @@ void* luaX_optudata (lua_State *L, int narg, const char *argname, const char *tn
 }
 
 
-void* luaX_testclass (lua_State *L, int narg, const char *argname, const char *cname) {
-	void *p = lua_touserdata(L, narg);
-	if (p == NULL) {
-		return NULL;
-	}
-
+bool luaX_isclass (lua_State *L, int narg, const char *cname) {
 	lua_getmetatable(L, narg);
 	luaL_getmetatable(L, cname);
 
 	if (lua_rawequal(L, -1, -2)) {
 		lua_pop(L, 2);
-		return p;
+		return true;
 	}
 
 	if (!luaL_getmetafield(L, narg, LUAX_STR_CLASS)) {
 		lua_pop(L, 2);
-		return NULL;
+		return false;
 	}
 
 	if (lua_rawequal(L, -1, -2)) {
 		lua_pop(L, 3);
+		return true;
+	}
+
+	lua_pop(L, 3);
+
+	return false;
+}
+
+
+void* luaX_testclass (lua_State *L, int narg, const char *cname) {
+	void *p = lua_touserdata(L, narg);
+	if (p == NULL) {
+		return NULL;
+	}
+
+	if (luaX_isclass(L, narg, cname)) {
 		return p;
 	}
 
 	return NULL;
 }
 
-void* luaX_checkclass (lua_State *L, int narg, const char *argname, const char *cname) {
-	void *p = luaX_testclass(L, narg, argname, cname);
+void* luaX_checkclass (lua_State *L, int narg, const char *cname, const char *argname) {
+	void *p = luaX_testclass(L, narg, cname);
 	if (p == NULL) {
 		typeerror(L, narg, argname, cname);
 	}

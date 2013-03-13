@@ -3,6 +3,7 @@
 
 
 #include <stdio.h>
+#include <stdbool.h>
 
 #include <lua.h>
 
@@ -67,7 +68,8 @@ extern const char* luaX_optlstring (lua_State *L, int narg, const char *argname,
 extern void* luaX_checkudata (lua_State *L, int narg, const char *tname, const char *argname);
 extern void* luaX_optudata (lua_State *L, int narg, const char *tname, const char *argname, void *def);
 
-extern void* luaX_testclass (lua_State *L, int narg, const char *cname, const char *argname);
+extern bool luaX_isclass (lua_State *L, int narg, const char *cname);
+extern void* luaX_testclass (lua_State *L, int narg, const char *cname);
 extern void* luaX_checkclass (lua_State *L, int narg, const char *cname, const char *argname);
 extern void* luaX_optclass (lua_State *L, int narg, const char *cname, const char *argname, void *def);
 
