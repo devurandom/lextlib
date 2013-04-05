@@ -73,7 +73,7 @@ struct luaXt_CMethod {
 	lua_CFunction function;
 };
 
-/*
+#ifdef 0
 struct luaXt_CMethod {
 	luaXt_Type *self;
 	luaXt_CFunction f;
@@ -189,4 +189,4 @@ void luaXt_declfunction_impl(const char *rtype, lua_CFunction function, const ch
 
 }
 
-*/
+#endif
