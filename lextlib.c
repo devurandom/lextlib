@@ -257,6 +257,10 @@ bool luaX_isclass (lua_State *L, int narg, const char *cname) {
 		return true;
 	}
 
+	if (narg < 0) {
+		narg -= 2;
+	}
+
 	if (!luaL_getmetafield(L, narg, LUAX_STR_CLASS)) {
 		lua_pop(L, 2);
 		return false;
