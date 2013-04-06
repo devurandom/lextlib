@@ -249,16 +249,14 @@ void* luaX_optudata (lua_State *L, int narg, const char *argname, const char *tn
 
 
 bool luaX_isclass (lua_State *L, int narg, const char *cname) {
+	narg = lua_absindex(L, narg);
+
 	lua_getmetatable(L, narg);
 	luaL_getmetatable(L, cname);
 
 	if (lua_rawequal(L, -1, -2)) {
 		lua_pop(L, 2);
 		return true;
-	}
-
-	if (narg < 0) {
-		narg -= 2;
 	}
 
 	if (!luaL_getmetafield(L, narg, LUAX_STR_CLASS)) {
