@@ -11,8 +11,11 @@
 #include "lextlib_lua52.h"
 
 
-#define luaX_setconst(L, idx, val) \
-	(lua_pushinteger((L), (val)), lua_setfield((L), (idx) > 0 ? (idx) : (idx)-1, #val))
+#define LUAX_FUNCTION(prefix, function) { #function, prefix##function }
+
+/* [-0,+0,e] */
+#define luaX_setconst(L, idx, prefix, val) \
+	(lua_pushinteger((L), (prefix##val)), lua_setfield((L), (idx) > 0 ? (idx) : (idx)-1, #val))
 
 #define luaX_opt(L, func, narg, argname, def) \
 	(lua_isnoneornil((L), (narg)) ? (def) : func((L), (narg), (argname)))
