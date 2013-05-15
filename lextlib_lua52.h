@@ -22,6 +22,8 @@
 /* WARNING: Not entirely correct, but should work anyway */
 #	define lua_rawlen lua_objlen
 
+#	define lua_absindex(L, i) (((i) > 0 || (i) < LUA_REGISTRYINDEX) ? (i) : lua_gettop(L)+(i)+1)
+
 /* WARNING: Something very different, but it might get your job done */
 #	define lua_getuservalue lua_getfenv
 #	define lua_setuservalue lua_setfenv
