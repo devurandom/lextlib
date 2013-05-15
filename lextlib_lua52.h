@@ -46,7 +46,6 @@
 /* WARNING: Probably slower than Lua 5.2's implementation */
 # define luaL_testudata(L,i,t) luaX52_luaL_testudata(L,(i),(t))
 
-
 static inline int luaX52_lua_compare(lua_State *L, int index1, int index2, int op) {
 	switch (op) {
 	case LUA_OPEQ:
@@ -61,9 +60,8 @@ static inline int luaX52_lua_compare(lua_State *L, int index1, int index2, int o
 }
 
 static inline void luaX52_luaL_requiref(lua_State *L, const char *modname, lua_CFunction openf, int glb) {
-	lua_getglobal(L, "package");
-	
 	int l_package_loaded = -1;
+	lua_getglobal(L, "package");
 	if (!lua_isnil(L, -1)) {
 		lua_getfield(L, -1, "loaded");
 		l_package_loaded = lua_gettop(L);
