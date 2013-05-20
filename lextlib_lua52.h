@@ -29,24 +29,38 @@
 #	define lua_setuservalue lua_setfenv
 
 /* WARNING: Probably slower than Lua 5.2's implementation */
-#	define lua_compare(L,i1,i2,op) luaX52_lua_compare(L,(i1),(i2),(op))
+#	define lua_compare luaX52_lua_compare
 
 #	define lua_tonumberx(L,i,b) (lua_isnumber(L,(i)) ? (*(b)=1, lua_tonumber(L,(i))) : (*(b)=0, 0))
 #	define lua_tointegerx(L,i,b) (lua_isnumber(L,(i)) ? (*(b)=1, lua_tointeger(L,(i))) : (*(b)=0, 0))
 
-#	define luaL_newlib(L,l) (lua_newtable(L), luaL_register(L,NULL,l))
+#	define luaL_getsubtable luaX52_luaL_getsubtable
+
+#	define luaL_newlib(L,l) (luaL_newlibtable(L,l), luaL_setfuncs(L,l,0))
+
+#	define luaL_newlibtable(L,l) (lua_createtable(L,0,sizeof(l)))
 
 # define luaL_requiref(L,l,f,g) luaX52_luaL_requiref(L,(l),(f),(g))
 
-/* WARNING: Does not work if you need common upvalues */
-#	define luaL_setfuncs(L,l,n) (assert(n==0), luaL_register(L,NULL,l))
+#	define luaL_setfuncs luaX52_luaL_setfuncs
 
 #	define luaL_setmetatable(L,t) (luaL_getmetatable(L,t), lua_setmetatable(L,-2))
 
-/* WARNING: Probably slower than Lua 5.2's implementation */
 # define luaL_testudata(L,i,t) luaX52_luaL_testudata(L,(i),(t))
 
+static inline void luaX52_luaL_setfuncs(lua_State *L, const luaL_Reg *l, int nup) {
+	luaL_checkstack(L, nup, "too many upvalues");
+	for (; l->name != NULL; l++) {  /* fill the table with given functions */
+		for (int i = 0; i < nup; i++)  /* copy upvalues to the top */
+			lua_pushvalue(L, -nup);
+		lua_pushcclosure(L, l->func, nup);  /* closure with those upvalues */
+		lua_setfield(L, -(nup + 2), l->name);
+	}
+	lua_pop(L, nup);  /* remove upvalues */
+}
+
 static inline int luaX52_lua_compare(lua_State *L, int index1, int index2, int op) {
+	assert(op == LUA_OPEQ || op == LUA_OPLT || op == LUA_OPLE);
 	switch (op) {
 	case LUA_OPEQ:
 		return lua_equal(L, index1, index2);
@@ -59,47 +73,45 @@ static inline int luaX52_lua_compare(lua_State *L, int index1, int index2, int o
 	}
 }
 
-static inline void luaX52_luaL_requiref(lua_State *L, const char *modname, lua_CFunction openf, int glb) {
-	int l_package_loaded = -1;
-	lua_getglobal(L, "package");
-	if (!lua_isnil(L, -1)) {
-		lua_getfield(L, -1, "loaded");
-		l_package_loaded = lua_gettop(L);
-	}
-	
-	lua_pushcfunction(L, openf);
-	lua_pushstring(L, modname);
-	lua_call(L, 1, 1);
-
-	if (l_package_loaded >= 0 && !lua_isnil(L, l_package_loaded)) {
-		lua_pushvalue(L, -1);
-		lua_setfield(L, l_package_loaded, modname);
-	}
-	
-	if (glb) {
-		lua_pushvalue(L, -1);
-		lua_setglobal(L, modname);
+static inline int luaX52_luaL_getsubtable(lua_State *L, int idx, const char *fname) {
+	lua_getfield(L, idx, fname);
+	if (lua_istable(L, -1)) return 1;  /* table already there */
+	else {
+		lua_pop(L, 1);  /* remove previous result */
+		idx = lua_absindex(L, idx);
+		lua_newtable(L);
+		lua_pushvalue(L, -1);  /* copy to be left at top */
+		lua_setfield(L, idx, fname);  /* assign new table to field */
+		return 0;  /* false, because did not find table there */
 	}
 }
 
-static inline void *luaX52_luaL_testudata(lua_State *L, int arg, const char *tname) {
-	lua_getmetatable(L, arg);
-	if (!lua_isnil(L, -1)) {
-		luaL_getmetatable(L, tname);
-		if (!lua_isnil(L, -1)) {
-			if (lua_equal(L, -1, -2)) {
-				lua_pop(L, 2);
-				return lua_touserdata(L, arg);
-			}
-		}
+static inline void luaX52_luaL_requiref(lua_State *L, const char *modname, lua_CFunction openf, int glb) {
+	lua_pushcfunction(L, openf);
+	lua_pushstring(L, modname);  /* argument to open function */
+	lua_call(L, 1, 1);  /* open module */
+	luaL_getsubtable(L, LUA_REGISTRYINDEX, "_LOADED");
+	lua_pushvalue(L, -2);  /* make copy of module (call result) */
+	lua_setfield(L, -2, modname);  /* _LOADED[modname] = module */
+	lua_pop(L, 1);  /* remove _LOADED table */
+	if (glb) {
+		lua_pushvalue(L, -1);  /* copy of 'mod' */
+		lua_setglobal(L, modname);  /* _G[modname] = module */
+	}
+}
 
-		lua_pop(L, 2);
+static inline void *luaX52_luaL_testudata(lua_State *L, int ud, const char *tname) {
+	void *p = lua_touserdata(L, ud);
+	if (p != NULL) {  /* value is a userdata? */
+		if (lua_getmetatable(L, ud)) {  /* does it have a metatable? */
+			luaL_getmetatable(L, tname);  /* get correct metatable */
+			if (!lua_rawequal(L, -1, -2))  /* not the same? */
+				p = NULL;  /* value is a userdata with wrong metatable */
+			lua_pop(L, 2);  /* remove both metatables */
+			return p;
+		}
 	}
-	else {
-		lua_pop(L, 1);
-	}
-	
-	return NULL;
+	return NULL;  /* value is not a userdata with a metatable */
 }
 
 #endif
