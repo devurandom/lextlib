@@ -58,6 +58,7 @@ extern const char *luaX_typename(lua_State *L, int narg);
 
 extern void luaX_checktype (lua_State *L, int narg, const char *argname, int t);
 extern int luaX_argerror (lua_State *L, int narg, const char *argname, const char *extramsg);
+extern int luaX_typeerror (lua_State *L, int narg, const char *argname, const char *tname);
 
 extern lua_Number luaX_checknumber (lua_State *L, int narg, const char *argname);
 extern lua_Number luaX_optnumber (lua_State *L, int narg, const char *argname, lua_Number def);

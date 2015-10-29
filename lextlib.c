@@ -152,7 +152,7 @@ int luaX_argerror (lua_State *L, int narg, const char *argname, const char *extr
 }
 
 
-static int typeerror (lua_State *L, int narg, const char *argname, const char *tname) {
+int luaX_typeerror (lua_State *L, int narg, const char *argname, const char *tname) {
   const char *msg = lua_pushfstring(L, "%s expected, got %s", tname, luaX_typename(L, narg));
 
   return luaX_argerror(L, narg, argname, msg);
@@ -160,7 +160,7 @@ static int typeerror (lua_State *L, int narg, const char *argname, const char *t
 
 
 static int tag_error (lua_State *L, int narg, const char *argname, int tag) {
-  return typeerror(L, narg, argname, lua_typename(L, tag));
+  return luaX_typeerror(L, narg, argname, lua_typename(L, tag));
 }
 
 
@@ -232,7 +232,7 @@ void* luaX_checkudata (lua_State *L, int narg, const char *argname, const char *
 	void *d = luaL_testudata(L, narg, tname);
 
 	if (d == NULL) {
-		typeerror(L, narg, argname, tname);
+		luaX_typeerror(L, narg, argname, tname);
 	}
 
 	return d;
@@ -291,7 +291,7 @@ void* luaX_testclass (lua_State *L, int narg, const char *cname) {
 void* luaX_checkclass (lua_State *L, int narg, const char *cname, const char *argname) {
 	void *p = luaX_testclass(L, narg, cname);
 	if (p == NULL) {
-		typeerror(L, narg, argname, cname);
+		luaX_typeerror(L, narg, argname, cname);
 	}
 
 	return p;
