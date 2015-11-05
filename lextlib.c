@@ -134,7 +134,7 @@ const char *luaX_typename(lua_State *L, int narg) {
 }
 
 
-int luaX_argerror (lua_State *L, int narg, const char *argname, const char *extramsg) {
+const char* luaX_pushargerror (lua_State *L, int narg, const char *argname, const char *extramsg) {
 	const char *msg = NULL;
 
 	if (argname != NULL) {
@@ -148,12 +148,23 @@ int luaX_argerror (lua_State *L, int narg, const char *argname, const char *extr
 #endif
 	}
 
+	return msg;
+}
+
+
+int luaX_argerror (lua_State *L, int narg, const char *argname, const char *extramsg) {
+	const char *msg = luaX_pushargerror(L, narg, argname, extramsg);
+
 	return luaL_argerror(L, narg, msg);
 }
 
 
+const char* luaX_pushtypeerror (lua_State *L, int narg, const char *argname, const char *tname) {
+  return lua_pushfstring(L, "%s expected, got %s", tname, luaX_typename(L, narg));
+}
+
 int luaX_typeerror (lua_State *L, int narg, const char *argname, const char *tname) {
-  const char *msg = lua_pushfstring(L, "%s expected, got %s", tname, luaX_typename(L, narg));
+  const char *msg = luaX_pushtypeerror(L, narg, argname, tname);
 
   return luaX_argerror(L, narg, argname, msg);
 }

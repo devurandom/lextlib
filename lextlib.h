@@ -54,7 +54,10 @@ extern void luaX_error (lua_State *L, const char *fmt, ...) LUAX_DECL_NORETURN;
 extern void luaX_preload (lua_State *L, const char *name, lua_CFunction function);
 extern void luaX_restrict (lua_State *L);
 
-extern const char *luaX_typename(lua_State *L, int narg);
+extern const char* luaX_typename(lua_State *L, int narg);
+
+extern const char* luaX_pushargerror (lua_State *L, int narg, const char *argname, const char *extramsg);
+extern const char* luaX_pushtypeerror (lua_State *L, int narg, const char *argname, const char *tname);
 
 extern void luaX_checktype (lua_State *L, int narg, const char *argname, int t);
 extern int luaX_argerror (lua_State *L, int narg, const char *argname, const char *extramsg);
