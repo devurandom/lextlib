@@ -9,22 +9,29 @@
 #include <lauxlib.h>
 
 
+static int luax_traceback_function = 0;
+
+
+int luaX_settraceback (lua_State *L) {
+	luaX_checktype(L, 1, "traceback function", LUA_TFUNCTION);       // [-0,+0,e]
+	lua_pushlightuserdata(L, &luax_traceback_function);              // [-0,+1,-]
+	lua_pushvalue(L, 1);                                             // [-0,+1,-]
+	lua_rawset(L, LUA_REGISTRYINDEX);                                // [-1,+1,-]
+	return 0;
+}
+
+
 int luaX_traceback (lua_State *L) {
-	lua_getglobal(L, "debug");                                       // [-0,+1,-]
-	if (!lua_istable(L, -1)) {                                       // [-0,+0,-]
+	lua_pushlightuserdata(L, &luax_traceback_function);              // [-0,+1,-]
+	lua_rawget(L, LUA_REGISTRYINDEX);                                // [-1,+1,-]
+	if (!lua_isfunction(L, -1)) {                                    // [-0,+0,-]
 		lua_pop(L, 1);                                                 // [-1,+0,-]
 		return 1;
 	}
 
-	lua_getfield(L, -1, "traceback");                                // [-0,+1,-]
-	if (!lua_isfunction(L, -1)) {                                    // [-0,+0,-]
-		lua_pop(L, 2);                                                 // [-1,+0,-]
-		return 1;
-	}
-
-	lua_pushvalue(L, 1); /* pass error message */                    // [-0,+1,-]
-	lua_pushinteger(L, 2); /* skip this function and traceback */    // [-0,+1,-]
-	lua_call(L, 2, 1); /* call debug.traceback */                    // [-3,+1,e]
+	lua_insert(L, -2); /* shift function below error message */      // [-1,+1,-]
+	lua_pushinteger(L, 2); /* skip this function in the trace */     // [-0,+1,-]
+	lua_call(L, 2, 1); /* call traceback function */                 // [-3,+1,e]
 
 	return 1;
 }
@@ -74,9 +81,9 @@ void luaX_showstack (lua_State *L) { //> [-0,+0,e]
 		return;
 	}
 
-	lua_pop(L, 1);
-
 	fprintf(stderr, "DEBUG: %s\n", err);
+
+	lua_pop(L, 1);
 }
 
 
