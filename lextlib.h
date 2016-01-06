@@ -45,6 +45,7 @@
 
 extern const char* luaX_status2str (int status);
 
+extern bool luaX_havetraceback (lua_State *L);
 extern int luaX_settraceback (lua_State *L);
 extern int luaX_traceback (lua_State *L);
 extern int luaX_panic (lua_State *L);

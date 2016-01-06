@@ -12,6 +12,15 @@
 static int luax_traceback_function = 0;
 
 
+bool luaX_havetraceback (lua_State *L) {
+	lua_pushlightuserdata(L, &luax_traceback_function);              // [-0,+1,-]
+	lua_rawget(L, LUA_REGISTRYINDEX);                                // [-1,+1,-]
+	bool result = lua_isfunction(L, -1);                             // [-0,+0,-]
+	lua_pop(L, 1);                                                   // [-1,+0,-]
+	return result;
+}
+
+
 int luaX_settraceback (lua_State *L) {
 	luaX_checktype(L, 1, "traceback function", LUA_TFUNCTION);       // [-0,+0,e]
 	lua_pushlightuserdata(L, &luax_traceback_function);              // [-0,+1,-]
